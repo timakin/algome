@@ -8,6 +8,7 @@
 
 #include <iostream>
 using namespace std;
+#define values 30;
 
 
 // [prevPointer | value | nextPointer]
@@ -104,7 +105,7 @@ void doublyLinkedList::destroyList(){
 
 void doublyLinkedList::searchValue(double target){
     Node *temp = front;
-    
+
     cout << "Search Start" << endl;
     while (temp != NULL) {
         if (temp->value == target) {
