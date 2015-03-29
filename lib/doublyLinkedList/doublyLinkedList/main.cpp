@@ -37,6 +37,7 @@ public:
     void appendNodeBack(double x);
     void dispNodeForward(); // 前方から順に表示
     void dispNodeReverse(); // 後方から順に表示
+    void searchValue(double target);
     void destroyList();
 };
 
@@ -75,6 +76,7 @@ void doublyLinkedList::dispNodeForward(){
         cout << temp->value << "  ";
         temp = temp->Next;
     }
+    cout << endl << endl;
 }
 
 void doublyLinkedList::dispNodeReverse(){
@@ -84,6 +86,7 @@ void doublyLinkedList::dispNodeReverse(){
         cout << temp->value << "  ";
         temp = temp->Prev;
     }
+    cout << endl << endl;
 }
 
 void doublyLinkedList::destroyList(){
@@ -97,6 +100,25 @@ void doublyLinkedList::destroyList(){
     }
     front = NULL;
     back = NULL;
+}
+
+void doublyLinkedList::searchValue(double target){
+    Node *temp = front;
+    
+    cout << "Search Start" << endl;
+    while (temp != NULL) {
+        if (temp->value == target) {
+            cout << "Yes" << endl;
+            break;
+        } else {
+            temp = temp->Next;
+        }
+    }
+    if (temp == NULL) {
+        cout << "Search target cannot find" << endl;
+    }
+    cout << "Search End" << endl;
+    cout << endl << endl;
 }
 
 int main(int argc, const char * argv[]) {
@@ -121,6 +143,8 @@ int main(int argc, const char * argv[]) {
     for( int i = 1 ; i < 4 ; i++)
         list->appendNodeFront(i);
     list->dispNodeForward();
+    list->searchValue(2);
+    list->searchValue(5);
     return 0;
 
 }
