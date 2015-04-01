@@ -66,9 +66,9 @@ TreeNode* TreeNode::searchNode(TreeNode* node, int num) {
 bool TreeNode::deleteNode(int num) {
     TreeNode *node = treeRoot;
     TreeNode *parent = NULL;
-    int direction = 0; // 親のどちら側に値が存在していたか。
+    int direction = 0; // 親のどちら側に値が存在していたか。左なら-1、右なら1。
     
-    // 削除する対象を見つける
+    // 削除する対象を見つける(searchNodeと同じ)
     while (node != NULL && node->value != num) {
         if (num < node->value) {
             parent = node;
@@ -83,9 +83,12 @@ bool TreeNode::deleteNode(int num) {
     if (node == NULL) {
         return false;
     }
+    // node == numしか以下には進めない。
     // 見つかったら、searchNodeと同様にそのnode自体を値として持つ。
     if (node->left == NULL || node->right == NULL) {
+        // 左か右のどちらかがNULL立った場合。両方NULLも含む。
         if (node->left == NULL) {
+            // 親のポインタを変更する
             if (direction == -1) {
                 parent->left = node->right;
             } else if (direction == 1) {
@@ -104,13 +107,19 @@ bool TreeNode::deleteNode(int num) {
         }
     } else {
         // 両方ともnullじゃなかった場合。
+        // つまりnodeの左右に子ノードがくっついてて、それらを考慮して
+        // delete作業を行わなければならない場合。
+        // この場合、左側の中で一番大きな値と入れ替えてから削除することで、
+        // 左右の均衡を保ちつつ、適切に値が削除できる。
         TreeNode *leftBiggest = node->left;
         parent = node;
         direction = -1;
         while (leftBiggest->right != NULL) {
             parent = leftBiggest;
-            leftBiggest
+            leftBiggest = leftBiggest->right;
+            direction = 1;
         }
+        
     }
     return true;
 }
