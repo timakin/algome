@@ -7,6 +7,7 @@
 //
 
 #include <iostream>
+using namespace std;
 
 class TreeNode {
     int value;
@@ -20,7 +21,7 @@ public:
     void insertNode(TreeNode* parent, int num);
     TreeNode* searchNode(TreeNode* node, int val);
     bool deleteNode(int num);
-    void disp();
+    void disp(int depth, TreeNode* node);
 };
 
 TreeNode *treeRoot = NULL;
@@ -120,14 +121,31 @@ bool TreeNode::deleteNode(int num) {
             direction = 1;
         }
         
+        // leftBiggestの値をnodeに代入し、
+        // leftBiggestは左側の枝を入れる。
+        node->value = leftBiggest->value;
+        if (direction == -1) {
+            parent->left = leftBiggest->left;
+        } else {
+            parent->right = leftBiggest->left;
+        }
     }
     return true;
+}
+
+void TreeNode::disp(int depth, TreeNode* node) {
+    if (node == NULL) {
+        cout << "node is empty" << endl;
+    }
+    disp(depth+1, node->left);
+    for (int i = 0; i < depth; i++) {
+        cout << "  " << endl;
+    }
+    cout << node->value << endl;
+    disp(depth+1, node->right);
 }
 
 
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return 0;
 }
