@@ -9,143 +9,150 @@
 #include <iostream>
 using namespace std;
 
-class TreeNode {
+typedef struct _tag_tree_node {
     int value;
-    TreeNode *left;
-    TreeNode *right;
-public:
-    TreeNode(int num) {
-        value = num;
-        left = right = NULL;
+    struct _tag_tree_node *left;
+    struct _tag_tree_node *right;
+} tree_node;
+
+tree_node *tree_root = NULL;
+
+tree_node* create_new_node(int num) {
+    tree_node *tree_new;
+    tree_new = (tree_node *)malloc(sizeof(tree_node));
+    if (tree_new == NULL) {
+        exit(EXIT_FAILURE);
     }
-    void insertNode(TreeNode* parent, int num);
-    TreeNode* searchNode(TreeNode* node, int val);
-    bool deleteNode(int num);
-    void disp(int depth, TreeNode* node);
-};
+    tree_new->left = NULL;
+    tree_new->right = NULL;
+    tree_new->value = num;
+    
+    return tree_new;
+}
 
-TreeNode *treeRoot = NULL;
-
-void TreeNode::insertNode(TreeNode* parent, int num) {
-    if (parent == NULL) {
-        treeRoot = new TreeNode(num);
+void insert_tree(int num, tree_node *node) {
+    if (node == NULL) {
+        tree_root = create_new_node(num);
         return;
     }
-    if (num < parent->value) {
-        if (parent->left != NULL) {
-            insertNode(parent->left, num);
+    
+    if (node->value > num) {
+        if (node->left != NULL) {
+            insert_tree(num, node->left);
         } else {
-            parent->left = new TreeNode(num);
+            node->left = create_new_node(num);
         }
     } else {
-        if (parent->right != NULL) {
-            insertNode(parent->right, num);
+        if (node->right != NULL) {
+            insert_tree(num, node->right);
         } else {
-            parent->right = new TreeNode(num);
+            node->right = create_new_node(num);
         }
     }
+    
     return;
 }
 
-TreeNode* TreeNode::searchNode(TreeNode* node, int num) {
-    if (num < node->value) {
-        if (node->left == NULL) {
-            return NULL;
-        }
-        return searchNode(node->left, num);
-    }
-    if (node->value < num) {
-        if (node->right == NULL) {
-            return NULL;
-        }
-        return searchNode(node->right, num);
-    }
-    // 左右どちらとも大小が決められないなら、その値自体が探しているnode。
-    return node;
-}
-
-bool TreeNode::deleteNode(int num) {
-    TreeNode *node = treeRoot;
-    TreeNode *parent = NULL;
-    int direction = 0; // 親のどちら側に値が存在していたか。左なら-1、右なら1。
+int delete_tree(int val) {
+    tree_node *node, *parent_node;
+    tree_node *left_biggest;
+    int direction;
     
-    // 削除する対象を見つける(searchNodeと同じ)
-    while (node != NULL && node->value != num) {
-        if (num < node->value) {
-            parent = node;
+    node = tree_root;
+    parent_node = NULL;
+    direction = 0;
+    
+    while (node != NULL && node->value != val) {
+        if (node->value > val) {
+            parent_node = node;
             node = node->left;
             direction = -1;
         } else {
-            parent = node;
+            parent_node = node;
             node = node->right;
             direction = 1;
         }
     }
+    
     if (node == NULL) {
-        return false;
+        return 0;
     }
-    // node == numしか以下には進めない。
-    // 見つかったら、searchNodeと同様にそのnode自体を値として持つ。
+    
     if (node->left == NULL || node->right == NULL) {
-        // 左か右のどちらかがNULL立った場合。両方NULLも含む。
         if (node->left == NULL) {
-            // 親のポインタを変更する
             if (direction == -1) {
-                parent->left = node->right;
-            } else if (direction == 1) {
-                parent->right = node->right;
-            } else if (direction == 0) {
-                treeRoot = node->right;
+                parent_node->left = node->right;
+            }
+            if (direction == 1) {
+                parent_node->right = node->right;
+            }
+            if (direction == 0) {
+                tree_root = node->right;
             }
         } else {
             if (direction == -1) {
-                parent->left = node->left;
-            } else if (direction == 1) {
-                parent->right = node->left;
-            } else if (direction == 0) {
-                treeRoot = node->left;
+                parent_node->left = node->left;
+            }
+            if (direction == 1) {
+                parent_node->right = node->left;
+            }
+            if (direction == 0) {
+                tree_root = node->left;
             }
         }
+        free(node);
     } else {
-        // 両方ともnullじゃなかった場合。
-        // つまりnodeの左右に子ノードがくっついてて、それらを考慮して
-        // delete作業を行わなければならない場合。
-        // この場合、左側の中で一番大きな値と入れ替えてから削除することで、
-        // 左右の均衡を保ちつつ、適切に値が削除できる。
-        TreeNode *leftBiggest = node->left;
-        parent = node;
+        left_biggest = node->left;
+        parent_node = node;
         direction = -1;
-        while (leftBiggest->right != NULL) {
-            parent = leftBiggest;
-            leftBiggest = leftBiggest->right;
+        while (left_biggest->right != NULL) {
+            parent_node = left_biggest;
+            left_biggest = left_biggest->right;
             direction = 1;
         }
         
-        // leftBiggestの値をnodeに代入し、
-        // leftBiggestは左側の枝を入れる。
-        node->value = leftBiggest->value;
+        node->value = left_biggest->value;
+        // ここのleft_biggest->leftはNULLが返ってくる。
+        // parent_nodeがどこであれ、NULLが返る。
         if (direction == -1) {
-            parent->left = leftBiggest->left;
+            parent_node->left = left_biggest->left;
         } else {
-            parent->right = leftBiggest->left;
+            parent_node->right = left_biggest->left;
+        }
+        free(left_biggest);
+    }
+    
+    return 1;
+}
+
+void print_tree(int depth, tree_node *node) {
+    int i;
+    if (node == NULL) {
+        return;
+    }
+    print_tree(depth+1, node->left);
+    for (i=0; i<depth; i++) {
+        printf("  ");
+    }
+    printf("%d\n", node->value);
+    print_tree(depth+1, node->right);
+}
+
+int main(void) {
+    int i, delete_target = 0;
+    for (i=0;i<10;i++) {
+        int val = rand()%99;
+        printf("%i|",val);
+        insert_tree(val, tree_root);
+        if(i == 7){
+            delete_target = val;
         }
     }
-    return true;
-}
-
-void TreeNode::disp(int depth, TreeNode* node) {
-    if (node == NULL) {
-        cout << "node is empty" << endl;
-    }
-    disp(depth+1, node->left);
-    for (int i = 0; i < depth; i++) {
-        cout << "  " << endl;
-    }
-    cout << node->value << endl;
-    disp(depth+1, node->right);
-}
-
-
-
-int main(int argc, const char * argv[]) {
+    printf("\n");
+    print_tree(0, tree_root);
+    delete_tree(delete_target);
+    printf("===============\n");
+    printf("%i\n", delete_target);
+    printf("===============\n");
+    print_tree(0, tree_root);
 }
